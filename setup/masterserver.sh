@@ -9,11 +9,14 @@ _term() {
   trap - SIGTERM SIGKILL # clear the trap
   # kill sounds mean, but -s is graceful
   kill -s -TERM "$child" 2>/dev/null
-  su postgres -c "pg_dump --schema=public --format=plain --file=/opt/pwn3/postgres-data/data.sql master"
+  su postgres -c "pg_dump master > /opt/pwn3/postgres-data/data.sql"
   exit 0
 }
 
 trap _term SIGTERM SIGKILL
+
+# ensure that postgres-data directory is owned by postgres so the backup works
+chown -R postgres:postgres /opt/pwn3/postgres-data/
 
 service postgresql start
 
@@ -28,7 +31,7 @@ if [ -f /opt/pwn3/postgres-data/data.sql ]; then
     echo "Found data, making a backup now!"
 	cp -p /opt/pwn3/postgres-data/data.sql /opt/pwn3/postgres-data/data.sql."$(date +%Y%m%d_%H%M%S)"
 	echo "Restoring backup data!"
-	su postgres -c "psql -U postgres --dbname master -1 --file /opt/pwn3/postgres-data/data.sql"
+	su postgres -c "psql -U postgres master < /opt/pwn3/postgres-data/data.sql"
 else
     echo "No backup data found!"
 	su pwn3 -c "psql master -f $PWN3/initdb.sql"

@@ -1,13 +1,13 @@
-#!/bin/bash 
+#!/bin/bash
 
 _term() {
   if [ -z "$child" ]
   then
 	return 0
   fi
-  echo "Caught SIGTERM signal!" 
-  trap - SIGTERM SIGKILL # clear the trap   
-  # kill sounds mean, but -s is graceful  
+  echo "Caught SIGTERM signal!"
+  trap - SIGTERM SIGKILL # clear the trap
+  # kill sounds mean, but -s is graceful
   kill -s -TERM "$child" 2>/dev/null
   su postgres -c "pg_dump --schema=public --format=plain --file=/opt/pwn3/postgres-data/data.sql master"
   exit 0
@@ -63,5 +63,5 @@ EOL
 su pwn3 -c "cd /opt/pwn3/server/MasterServer/ && ./MasterServer"  &
 
 
-child=$! 
+child=$!
 wait "$child"
